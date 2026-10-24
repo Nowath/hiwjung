@@ -53,7 +53,7 @@ export function createDirector(d: Deps) {
   };
   const speed = (tl: gsap.core.Timeline) => (reduced ? tl.timeScale(4) : tl);
 
-  // ---------- เอียงซองตามนิ้ว/เมาส์/ไจโร (เฉพาะตอนรอฉีก — การ์ดเป็น 2D ไม่เอียง) ----------
+  // ---------- เอียงซองตามนิ้ว/เมาส์ (เฉพาะตอนรอฉีก) — ไม่ใช้ไจโรแล้วเพราะ Android ยิง event ถี่จนกระตุก ----------
   let packTilt: { rx: gsap.QuickToFunc; ry: gsap.QuickToFunc } | null = null;
   let packIdle = false;
   const aim = (nx: number, ny: number) => {
@@ -72,11 +72,6 @@ export function createDirector(d: Deps) {
     }
   };
   const onPointer = (e: PointerEvent) => aim(e.clientX / window.innerWidth - 0.5, e.clientY / window.innerHeight - 0.5);
-  // Android ส่งค่าไจโรได้เลย ส่วน iOS ต้องขอสิทธิ์ผ่านปุ่ม จึงข้าม (ยังเอียงตามนิ้วได้)
-  const onGyro = (e: DeviceOrientationEvent) => {
-    if (e.gamma == null || e.beta == null) return;
-    aim(gsap.utils.clamp(-0.5, 0.5, e.gamma / 50), gsap.utils.clamp(-0.5, 0.5, (e.beta - 45) / 50));
-  };
 
   // ---------- intro: ฉากหลัง + ซองตกลงมา ----------
   function intro() {
@@ -88,7 +83,6 @@ export function createDirector(d: Deps) {
     gsap.from(".stage-chrome", { opacity: 0, y: (i: number) => (i ? 24 : -24), duration: 0.7, delay: 0.3, ease: "power3.out" });
 
     window.addEventListener("pointermove", onPointer);
-    window.addEventListener("deviceorientation", onGyro);
 
     const tl = gsap.timeline();
     tl.from(".rays", { opacity: 0, scale: 0.5, duration: 1.4, ease: "power2.out" }, 0);
@@ -110,8 +104,9 @@ export function createDirector(d: Deps) {
         .add(() => burst(fx, { ...packCenter(), count: 34, colors: [...PINK, "var(--gold-300)"], velocity: [180, 520], angle: [0, 360], gravity: 120, duration: 1.1, size: [2, 5] }), "pop")
         .fromTo(
           ".pack",
-          { opacity: 0, y: 140, scale: 0.55, filter: "blur(14px) brightness(2.2)" },
-          { opacity: 1, y: 0, scale: 1, filter: "blur(0px) brightness(1)", duration: 1.1, ease: "back.out(1.5)", clearProps: "filter" },
+          // ไม่ animate filter (blur/brightness) — Android ต้องวาดใหม่ทุกเฟรม กระตุกหนัก
+          { opacity: 0, y: 140, scale: 0.55 },
+          { opacity: 1, y: 0, scale: 1, duration: 1.1, ease: "back.out(1.5)" },
           "pop",
         )
         .fromTo(".pack-tilt", { rotationX: 55, rotationY: -40 }, { rotationX: 0, rotationY: 0, duration: 1.3, ease: "elastic.out(1, 0.6)" }, "pop")
@@ -133,7 +128,6 @@ export function createDirector(d: Deps) {
     return () => {
       cleanSparkles();
       window.removeEventListener("pointermove", onPointer);
-      window.removeEventListener("deviceorientation", onGyro);
     };
   }
 

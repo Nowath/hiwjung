@@ -82,16 +82,17 @@ function PackRound({ canteen, onNext }: { canteen: Canteen; onNext: () => void }
   return (
     <div ref={root} className="absolute inset-0">
       {/* ---------- ฉากหลัง ---------- */}
-      <div className="stage-glow pointer-events-none absolute top-[42%] left-1/2 size-[130vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,oklch(0.665_0.161_5.8/0.35),transparent_60%)]" />
+      {/* will-change: ชั้นที่หมุน/หายใจตลอดเวลาแยกเป็น layer ของ GPU — หมุนได้โดยไม่ต้องวาด gradient ใหม่ทุกเฟรม */}
+      <div className="stage-glow pointer-events-none absolute will-change-transform top-[42%] left-1/2 size-[130vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,oklch(0.665_0.161_5.8/0.35),transparent_60%)]" />
       <div
-        className="rays pointer-events-none absolute top-[42%] left-1/2 size-[220vmax] opacity-60"
+        className="rays pointer-events-none absolute will-change-transform top-[42%] left-1/2 size-[220vmax] opacity-60"
         style={{
           backgroundImage: "repeating-conic-gradient(from 0deg, oklch(0.665 0.161 5.8 / 0.22) 0deg 5deg, transparent 5deg 15deg)",
           maskImage: "radial-gradient(circle, black 0%, transparent 32%)",
         }}
       />
       <div
-        className="rays-gold pointer-events-none absolute top-[42%] left-1/2 size-[220vmax] opacity-0"
+        className="rays-gold pointer-events-none absolute will-change-transform top-[42%] left-1/2 size-[220vmax] opacity-0"
         style={{
           backgroundImage: "repeating-conic-gradient(from 7deg, oklch(0.88 0.12 88 / 0.4) 0deg 4deg, transparent 4deg 12deg)",
           maskImage: "radial-gradient(circle, black 0%, transparent 34%)",

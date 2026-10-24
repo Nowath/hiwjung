@@ -21,6 +21,13 @@ export { gsap, Draggable };
 export const PINK = ["var(--ci-rose-500)", "var(--ci-rose-300)", "var(--ci-rose-100)", "white"];
 export const GOLD = ["var(--gold-500)", "var(--gold-300)", "white", "var(--ci-rose-300)"];
 
+/**
+ * งบอนุภาค: ทุก burst/converge คูณด้วยค่านี้ — Android รุ่นกลางๆ กระตุกเมื่ออนุภาคเยอะ
+ * (แต่ละเม็ดเป็น DOM node + 2 tween) จึงลดเหลือราว 1/3 ของที่ออกแบบไว้ ปรับที่นี่ที่เดียว
+ */
+const PARTICLE_SCALE = 0.35;
+const budget = (n: number) => Math.max(4, Math.round(n * PARTICLE_SCALE));
+
 export const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -51,7 +58,7 @@ type BurstOptions = {
 export function burst(layer: HTMLElement | null, o: BurstOptions) {
   if (!layer || prefersReducedMotion()) return;
   const { shape = "dot", velocity = [250, 650], angle = [-170, -10], gravity = 700, duration = 1.6, size = [4, 9] } = o;
-  for (let i = 0; i < o.count; i++) {
+  for (let i = 0, n = budget(o.count); i < n; i++) {
     const el = document.createElement("span");
     const s = gsap.utils.random(size[0], size[1]);
     const color = o.colors[i % o.colors.length];
@@ -63,7 +70,6 @@ export function burst(layer: HTMLElement | null, o: BurstOptions) {
       height: `${shape === "confetti" ? s * 1.6 : shape === "spark" ? s * 3 : s}px`,
       background: color,
       borderRadius: shape === "dot" ? "50%" : "2px",
-      boxShadow: shape === "dot" ? `0 0 ${s * 1.5}px ${color}` : "none",
       willChange: "transform, opacity",
     });
     layer.appendChild(el);
@@ -90,7 +96,7 @@ export function shake(target: gsap.TweenTarget, strength = 10, duration = 0.5) {
 }
 
 /** ประกายลอยในอากาศตลอดเวลา — สร้างครั้งเดียวต่อรอบ คืนฟังก์ชันล้าง */
-export function ambientSparkles(layer: HTMLElement, count = 26) {
+export function ambientSparkles(layer: HTMLElement, count = 10) {
   layer.replaceChildren();
   if (prefersReducedMotion()) return () => layer.replaceChildren();
   const { innerWidth: w, innerHeight: h } = window;
@@ -103,7 +109,6 @@ export function ambientSparkles(layer: HTMLElement, count = 26) {
       height: `${s}px`,
       borderRadius: "50%",
       background: i % 3 ? "var(--ci-rose-300)" : "white",
-      boxShadow: `0 0 ${s * 3}px var(--ci-rose-300)`,
     });
     layer.appendChild(el);
     gsap.set(el, { x: gsap.utils.random(0, w), y: gsap.utils.random(0, h), opacity: 0 });
@@ -120,7 +125,7 @@ export function ambientSparkles(layer: HTMLElement, count = 26) {
 export function converge(layer: HTMLElement | null, o: { x: number; y: number; count: number; colors: string[]; radius?: number; duration?: number }) {
   if (!layer || prefersReducedMotion()) return;
   const { radius = 260, duration = 0.9 } = o;
-  for (let i = 0; i < o.count; i++) {
+  for (let i = 0, n = budget(o.count); i < n; i++) {
     const el = document.createElement("span");
     const s = gsap.utils.random(2, 5);
     const color = o.colors[i % o.colors.length];
@@ -132,7 +137,6 @@ export function converge(layer: HTMLElement | null, o: { x: number; y: number; c
       height: `${s}px`,
       borderRadius: "50%",
       background: color,
-      boxShadow: `0 0 ${s * 2.5}px ${color}`,
     });
     layer.appendChild(el);
     const a = gsap.utils.random(0, Math.PI * 2);
