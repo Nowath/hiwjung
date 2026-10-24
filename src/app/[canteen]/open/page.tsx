@@ -1,24 +1,19 @@
 import { notFound } from "next/navigation";
-import { TopBar } from "@/components/TopBar";
 import { canteens, getCanteen } from "@/lib/data";
-import { PackFlow } from "./PackOpener";
+import { PackStage } from "./pack-stage";
 
-// every path is prerendered from generateStaticParams; nothing to stream
 export const instant = false;
 
 export function generateStaticParams() {
   return canteens.map((c) => ({ canteen: c.id }));
 }
 
-export default async function OpenPage({ params }: PageProps<"/[canteen]/open">) {
-  const { canteen: id } = await params;
-  const canteen = getCanteen(id);
-  if (!canteen) notFound();
+export async function generateMetadata({ params }: PageProps<"/[canteen]/open">) {
+  return { title: `เปิดซอง · ${getCanteen((await params).canteen)?.short ?? ""} — กินไรดี` };
+}
 
-  return (
-    <>
-      <TopBar back={`/${id}`} />
-      <PackFlow canteen={canteen} />
-    </>
-  );
+export default async function OpenPage({ params }: PageProps<"/[canteen]/open">) {
+  const canteen = getCanteen((await params).canteen);
+  if (!canteen) notFound();
+  return <PackStage canteen={canteen} />;
 }

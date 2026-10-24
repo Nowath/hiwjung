@@ -1,219 +1,244 @@
+/* กินไรดี — CI ชุดเดียวกับโปรเจกต์ CU NEX อื่น (cunex-poll, cunex_prototype/docs/CI.md)
+ * macrostructure: แอปมือถือคอลัมน์เดียว (max-w-md) · header บาง + ปุ่มย้อนกลับ · เนื้อหาเป็นการ์ดขาวบนพื้น inner
+ * theme: CU NEX — ชมพู #E26385 เป็นสีเน้นสีเดียว, ตัวหนังสือดำ/เทา #888, พื้น #F2F2F2, การ์ดขาว
+ * ฟอนต์: หัวข้อ CHULALONGKORN · เนื้อหา TH Sarabun Chula (fallback ChulaCharasNew)
+ * ตัดสินใจไว้แล้ว:
+ *   - มน: การ์ด 14px (rounded-card) · input 10px · ปุ่ม/ชิป pill
+ *   - เบา: เส้นขนแมว + เงาสองระดับ (--sh-card, --sh-float) ไม่มี glassmorphism บนหน้าปกติ
+ *   - ไม่มี dark mode (CI ยังไม่กำหนดพาเลตต์มืด)
+ *   - responsive เฉพาะมือถือ: ทุกหน้าอยู่ในคอลัมน์ max-w-md, จอใหญ่แค่จัดกลาง
+ * ข้อยกเว้นเดียว: เวทีเปิดซอง (/[canteen]/open) เป็นพื้นมืดเพื่อให้แสง/ประกายของ GSAP มีคอนทราสต์
+ *   ใช้ token --stage-* ของตัวเอง แต่สีเน้นยังเป็นชมพูแบรนด์ + ทอง (เฉพาะการ์ด Rare)
+ */
 @import "tailwindcss";
+@import "tw-animate-css";
 
+@font-face {
+  font-family: "ChulaCharasNew";
+  src: url("/assets/fonts/ChulaCharasNewReg.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "ChulaCharasNew";
+  src: url("/assets/fonts/ChulaCharasNewBold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "CHULALONGKORN";
+  src: url("/assets/fonts/CHULALONGKORNReg.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "CHULALONGKORN";
+  src: url("/assets/fonts/CHULALONGKORNBold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "TH Sarabun Chula";
+  src: url("/assets/fonts/THSarabunChula-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+  /* Sarabun ตัวเล็กกว่าฟอนต์อื่นที่ขนาดเดียวกันมาก ขยายให้ text-base อ่านได้จริงบนมือถือ */
+  size-adjust: 126%;
+}
+
+/* ชั้นที่ 1 — พาเลตต์ CU NEX (ค่าเดียวกับ cunex-poll, hex เดิมอยู่ในคอมเมนต์) */
 :root {
-  --cream: #fff6eb;
-  --ink: #17357a;
-  --pink: #e4528c;
-  --pink-soft: #f9c9dc;
-  --sun: #ffc83d;
-  --butter: #ffe7b0;
-  --sky: #3fb6e8;
-  --aqua: #a6e3ee;
-  --mint: #c8ebc4;
-  --tomato: #f0603c;
+  --ci-rose-050: oklch(97.9% 0.011 357);
+  --ci-rose-100: oklch(94.9% 0.023 357.3); /* #FCE8EE */
+  --ci-rose-300: oklch(85.9% 0.071 5.3);
+  --ci-rose-500: oklch(66.5% 0.161 5.8); /* #E26385 */
+  --ci-rose-700: oklch(61% 0.162 5.5);
+  --ci-rose-900: oklch(54.7% 0.156 5.8);
+  --ci-ink-900: oklch(0 0 0);
+  --ci-ink-700: oklch(0.4495 0 0);
+  --ci-ink-500: oklch(0.6268 0 0); /* #888888 */
+  --ci-ink-400: oklch(0.7412 0 0);
+  --ci-surface: oklch(1 0 0);
+  --ci-inner: oklch(96.1% 0 0); /* #F2F2F2 */
+  --ci-chip: oklch(94.6% 0 0); /* #EDEDED */
+  --ci-line: oklch(94.9% 0 0); /* #EEEEEE */
+
+  /* ทองใช้กับ Rare เท่านั้น — สื่อ "หายาก" แบบเดียวกับกรอบทองบนรูปการ์ด */
+  --gold-300: oklch(88% 0.12 88);
+  --gold-500: oklch(78% 0.15 80);
+
+  /* เวทีเปิดซอง: กรมท่าอมชมพูเข้ม ไม่ใช่ดำสนิท เพื่อให้ชมพูแบรนด์ยังกลมกลืน */
+  --stage-bg: oklch(0.17 0.035 350);
+  --stage-bg-deep: oklch(0.11 0.025 340);
+  --stage-fg: oklch(0.97 0.01 357);
+  --stage-fg-soft: oklch(0.97 0.01 357 / 0.65);
+}
+
+/* ชั้นที่ 2 — token ที่ component เรียกใช้ ผูกกลับเข้าพาเลตต์ */
+:root {
+  --background: var(--ci-inner);
+  --foreground: var(--ci-ink-900);
+  --card: var(--ci-surface);
+  --card-foreground: var(--ci-ink-900);
+  --popover: var(--ci-surface);
+  --popover-foreground: var(--ci-ink-900);
+  --primary: var(--ci-rose-500);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: var(--ci-rose-100);
+  --secondary-foreground: var(--ci-rose-900);
+  --muted: var(--ci-chip);
+  --muted-foreground: var(--ci-ink-500);
+  --accent: var(--ci-rose-050);
+  --accent-foreground: var(--ci-rose-900);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: var(--ci-line);
+  --input: var(--ci-line);
+  --ring: var(--ci-rose-300);
+  --radius: 0.625rem;
+
+  --sh-card: 0 1px 2px oklch(0 0 0 / 0.04), 0 4px 16px oklch(0 0 0 / 0.04);
+  --sh-float: 0 12px 32px oklch(0 0 0 / 0.12);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --dur-fast: 0.18s;
+  --dur-med: 0.32s;
+  --dur-slow: 0.48s;
+
+  --font-charas: "ChulaCharasNew", ui-sans-serif, system-ui, sans-serif;
+  --font-chulalongkorn: "CHULALONGKORN", var(--font-charas);
+  --font-th-sarabun: "TH Sarabun Chula", var(--font-charas);
+}
+
+/* line-height ของไทยต้องสูงกว่าค่าละตินของ Tailwind ทุกขนาด */
+@theme {
+  --text-xs--line-height: 1.6;
+  --text-sm--line-height: 1.7;
+  --text-base--line-height: 1.75;
+  --text-lg--line-height: 1.7;
+  --text-xl--line-height: 1.6;
+  --text-2xl--line-height: 1.45;
+  --text-3xl--line-height: 1.35;
+  --text-4xl--line-height: 1.3;
+  --text-5xl--line-height: 1.25;
 }
 
 @theme inline {
-  --color-cream: var(--cream);
-  --color-ink: var(--ink);
-  --color-pink: var(--pink);
-  --color-pink-soft: var(--pink-soft);
-  --color-sun: var(--sun);
-  --color-butter: var(--butter);
-  --color-sky: var(--sky);
-  --color-aqua: var(--aqua);
-  --color-mint: var(--mint);
-  --color-tomato: var(--tomato);
-  --font-sans: var(--font-anuphan);
-  --font-display: var(--font-mitr);
-  --shadow-pop: 5px 5px 0 0 var(--ink);
-  --shadow-pop-sm: 3px 3px 0 0 var(--ink);
-  --shadow-pop-pink: 5px 5px 0 0 var(--pink);
+  --font-sans: var(--font-th-sarabun);
+  --font-heading: var(--font-chulalongkorn);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* ชื่อเดียวกับ cunex-poll เพื่อให้ component ที่ก๊อปมาใช้ได้ตรงๆ */
+  --color-badge: var(--ci-chip);
+  --color-inner-bg: var(--ci-inner);
+  --color-rose-50: var(--ci-rose-050);
+  --color-rose-100: var(--ci-rose-100);
+  --color-rose-300: var(--ci-rose-300);
+  --color-rose-500: var(--ci-rose-500);
+  --color-rose-700: var(--ci-rose-700);
+  --color-rose-900: var(--ci-rose-900);
+  --color-ink-400: var(--ci-ink-400);
+  --color-ink-500: var(--ci-ink-500);
+  --color-ink-700: var(--ci-ink-700);
+  --color-ink-900: var(--ci-ink-900);
+  --color-gold-300: var(--gold-300);
+  --color-gold-500: var(--gold-500);
+  --color-stage: var(--stage-bg);
+  --color-stage-deep: var(--stage-bg-deep);
+  --color-stage-fg: var(--stage-fg);
+  --color-stage-fg-soft: var(--stage-fg-soft);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-card: 0.875rem;
+  --radius-input: 0.625rem;
+
+  --shadow-card: var(--sh-card);
+  --shadow-float: var(--sh-float);
 }
 
-html,
-body {
-  background: var(--cream);
-  color: var(--ink);
-  font-family: var(--font-anuphan), sans-serif;
-  -webkit-tap-highlight-color: transparent;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
-/* ---------- friendly building blocks ---------- */
-
-.font-display {
-  font-family: var(--font-mitr), sans-serif;
+/* เข้าหน้าแบบเบาๆ สำหรับหน้าปกติ — งานหนักทั้งหมดอยู่ที่หน้าเปิดซองซึ่งใช้ GSAP */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@utility rise {
+  animation: rise var(--dur-slow) var(--ease-out) both;
 }
 
-/* chunky sticker button that "presses" into its shadow */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  border: 2.5px solid var(--ink);
-  border-radius: 14px;
-  padding: 0.7rem 1.1rem;
-  font-family: var(--font-mitr), sans-serif;
-  font-weight: 600;
-  box-shadow: var(--shadow-pop-sm);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-  user-select: none;
+/* ประกายทองวิ่งผ่านการ์ด Rare ในหน้า collection/การ์ดเดี่ยว (หน้าเปิดซองใช้ holo ที่ตามนิ้วแทน) */
+@keyframes sheen {
+  0%,
+  60% {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(220%) skewX(-18deg);
+  }
 }
-.btn:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0 0 var(--ink);
-}
-.btn:active {
-  transform: translate(3px, 3px);
-  box-shadow: 0 0 0 0 var(--ink);
+@utility sheen {
+  animation: sheen 3.6s var(--ease-out) infinite;
 }
 
-.pop-box {
-  border: 2.5px solid var(--ink);
-  border-radius: 22px;
-  box-shadow: var(--shadow-pop);
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
-.title-pop {
-  font-family: var(--font-mitr), sans-serif;
-  font-weight: 700;
-  line-height: 1.05;
-  text-shadow: 3px 3px 0 var(--pink-soft);
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
-
-.squiggle {
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='8' viewBox='0 0 24 8'%3E%3Cpath d='M0 4 Q6 0 12 4 T24 4' fill='none' stroke='%23e4528c' stroke-width='2.5'/%3E%3C/svg%3E") repeat-x bottom / 24px 8px;
-  padding-bottom: 6px;
-}
-
-.dots-bg {
-  background-image: radial-gradient(rgba(23, 53, 122, 0.12) 1.5px, transparent 1.6px);
-  background-size: 18px 18px;
-}
-
-/* ---------- card ---------- */
-
-.card-3d {
-  position: relative;
-  aspect-ratio: 5 / 7;
-  transform-style: preserve-3d;
-  border-radius: 4.5% / 3.2%;
-}
-
-.card-face {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  overflow: hidden;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-.card-face--front {
-  transform: rotateY(180deg);
-}
-
-.card-back {
-  background-color: var(--pink);
-  background-image:
-    radial-gradient(rgba(255, 255, 255, 0.28) 2px, transparent 2.2px),
-    radial-gradient(rgba(255, 255, 255, 0.28) 2px, transparent 2.2px);
-  background-size: 22px 22px;
-  background-position: 0 0, 11px 11px;
-  border: 3px solid var(--ink);
-  display: grid;
-  place-items: center;
-}
-
-/* ---------- holo (rare) ---------- */
-
-.holo {
-  --mx: 50%;
-  --my: 50%;
-  --o: 0.55;
-}
-
-.holo-shine,
-.holo-glare {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-}
-
-.holo-shine {
-  background:
-    repeating-linear-gradient(
-      110deg,
-      #ff5f6d 0%,
-      #ffc371 6%,
-      #f9f871 12%,
-      #6bffb8 18%,
-      #5ad1ff 24%,
-      #b28dff 30%,
-      #ff5f6d 36%
-    ),
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.12) 0 2px, transparent 2px 6px);
-  background-size: 300% 300%, 100% 100%;
-  background-position: var(--mx) var(--my), center;
-  mix-blend-mode: color-dodge;
-  opacity: calc(var(--o) * 0.55);
-  filter: brightness(0.7) contrast(1.3) saturate(1.2);
-}
-
-.holo-glare {
-  background: radial-gradient(
-    farthest-corner circle at var(--mx) var(--my),
-    rgba(255, 255, 255, 0.75) 0%,
-    rgba(255, 255, 255, 0.15) 25%,
-    rgba(0, 0, 0, 0.3) 90%
-  );
-  mix-blend-mode: overlay;
-  opacity: var(--o);
-}
-
-/* ---------- pack ---------- */
-
-.pack-art {
-  background-color: var(--sun);
-  background-image:
-    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.35) 0 14px, transparent 14px 28px);
-}
-
-.pack-crimp {
-  background: repeating-linear-gradient(90deg, rgba(23, 53, 122, 0.35) 0 3px, transparent 3px 7px);
-}
-
-.tear-line {
-  background: repeating-linear-gradient(90deg, var(--ink) 0 8px, transparent 8px 14px);
-}
-
-/* sunburst behind the pack / revealed card */
-.rays {
-  background: repeating-conic-gradient(from 0deg, var(--butter) 0 10deg, transparent 10deg 20deg);
-  -webkit-mask-image: radial-gradient(circle, #000 20%, transparent 68%);
-  mask-image: radial-gradient(circle, #000 20%, transparent 68%);
-  border-radius: 9999px;
-  animation: rays-spin 24s linear infinite;
-}
-.rays--gold {
-  background: repeating-conic-gradient(from 0deg, rgba(255, 200, 61, 0.9) 0 9deg, transparent 9deg 18deg);
-}
-@keyframes rays-spin {
-  to { rotate: 360deg; }
-}
-
-.rare-aura {
-  background: radial-gradient(circle, rgba(255, 200, 61, 0.95) 0%, rgba(228, 82, 140, 0.45) 45%, transparent 70%);
-  filter: blur(10px);
-}
-
-.silhouette {
-  filter: blur(6px) grayscale(1) brightness(1.25) contrast(0.6);
-  opacity: 0.45;
-  transform: scale(1.08);
-}
-
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { scrollbar-width: none; }

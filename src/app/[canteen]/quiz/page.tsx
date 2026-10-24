@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
-import { TopBar } from "@/components/TopBar";
+import { AppHeader } from "@/components/app-header";
+import { PageShell } from "@/components/page-shell";
 import { canteens, getCanteen } from "@/lib/data";
-import { Quiz } from "./Quiz";
+import { Quiz } from "./quiz";
 
-// every path is prerendered from generateStaticParams; nothing to stream
 export const instant = false;
 
 export function generateStaticParams() {
@@ -11,13 +11,13 @@ export function generateStaticParams() {
 }
 
 export default async function QuizPage({ params }: PageProps<"/[canteen]/quiz">) {
-  const { canteen: id } = await params;
-  if (!getCanteen(id)) notFound();
+  const canteen = getCanteen((await params).canteen);
+  if (!canteen) notFound();
 
   return (
-    <>
-      <TopBar back={`/${id}`} />
-      <Quiz canteenId={id} />
-    </>
+    <PageShell>
+      <AppHeader back={`/${canteen.id}`} title="ก่อนเปิดซอง" />
+      <Quiz canteenId={canteen.id} />
+    </PageShell>
   );
 }

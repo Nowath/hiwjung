@@ -1,4 +1,4 @@
-import { menus, mainMenusOf } from "./data";
+import { menus, packPoolOf } from "./data";
 import type { Menu, Rarity } from "./types";
 
 export const CARDS_PER_PACK = 3;
@@ -15,14 +15,15 @@ function drawFrom(pool: Menu[], taken: Set<string>): Menu | undefined {
 }
 
 /**
- * Draws a pack: no duplicates inside one pack. If the canteen has fewer menus
- * than CARDS_PER_PACK, the pack is topped up with main dishes from other canteens.
+ * Draws a pack: no duplicates inside one pack. The pool comes from packPoolOf
+ * (every main dish while SHARED_POOL is on); if it has fewer menus than
+ * CARDS_PER_PACK, the pack is topped up with main dishes from other canteens.
  * Returned in reveal order: commons first, rares last (TCG Pocket style).
  */
 export function drawPack(canteenId: string): Menu[] {
   const taken = new Set<string>();
   const cards: Menu[] = [];
-  const local = mainMenusOf(canteenId);
+  const local = packPoolOf(canteenId);
   const everywhere = menus.filter((m) => m.type === "main");
 
   for (let i = 0; i < CARDS_PER_PACK; i++) {

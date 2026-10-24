@@ -1,18 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Anuphan, Mitr } from "next/font/google";
+import { Toaster } from "@/components/ui/sonner";
+import { APP_NAME } from "@/config/flow";
 import "./globals.css";
-
-const mitr = Mitr({
-  variable: "--font-mitr",
-  subsets: ["thai", "latin"],
-  weight: ["500", "600", "700"],
-});
-
-const anuphan = Anuphan({
-  variable: "--font-anuphan",
-  subsets: ["thai", "latin"],
-  weight: ["400", "500", "600"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -20,21 +9,23 @@ export const metadata: Metadata = {
       ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
       : "http://localhost:3000",
   ),
-  title: "กินไรดี — สุ่มการ์ดอาหารโรงอาหารจุฬาฯ",
-  description: "เปิดซองการ์ดอาหาร สุ่มเมนูโรงอาหารจุฬาฯ แล้วสะสมให้ครบ",
+  title: `${APP_NAME} — สุ่มการ์ดอาหารโรงอาหารจุฬาฯ`,
+  description: "เลือกโรงอาหาร เปิดซองสุ่มเมนู 3 ใบ แล้วเก็บใบที่จะไปกินเข้าคอลเลกชัน",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#fff6eb",
+  themeColor: "#f2f2f2",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="th" className={`${mitr.variable} ${anuphan.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
-        <div className="mx-auto flex w-full max-w-md flex-1 flex-col">{children}</div>
+    <html lang="th" className="antialiased">
+      <body className="flex min-h-dvh flex-col">
+        {children}
+        <Toaster position="top-center" />
       </body>
     </html>
   );

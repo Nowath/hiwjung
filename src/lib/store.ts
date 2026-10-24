@@ -9,11 +9,12 @@ import { currentSlot, PACKS_PER_MEAL } from "./meal";
 interface State {
   collection: Record<string, CollectionEntry>;
   packUsage: PackUsage;
-  quizAnswers: Record<string, string>; // mock quiz, not used for filtering yet
+  quizAnswers: Record<string, string[]>; // mock quiz, not used for filtering yet
   addCard: (menuId: string) => void;
   consumePack: () => boolean;
-  setAnswer: (q: string, a: string) => void;
+  setAnswer: (q: string, a: string[]) => void;
   resetAll: () => void;
+  resetPacks: () => void;
 }
 
 export const useStore = create<State>()(
@@ -44,6 +45,7 @@ export const useStore = create<State>()(
       },
       setAnswer: (q, a) => set((s) => ({ quizAnswers: { ...s.quizAnswers, [q]: a } })),
       resetAll: () => set({ collection: {}, packUsage: { mealSlot: "", opened: 0 } }),
+      resetPacks: () => set({ packUsage: { mealSlot: "", opened: 0 } }),
     }),
     {
       name: "kinraidee",
@@ -65,3 +67,10 @@ const noop = () => () => {};
 /** false during SSR / first render, true after hydration — avoids localStorage mismatches. */
 export const useHydrated = () =>
   useSyncExternalStore(noop, () => true, () => false);
+
+/** ค่าซองที่เหลือ ณ ตอนเรียก (นอก render) — ใช้ตัดสินตอนเริ่มรอบว่าซองหมดหรือยัง */
+export function packsLeftNow() {
+  const usage = useStore.getState().packUsage;
+  const opened = usage.mealSlot === currentSlot().key ? usage.opened : 0;
+  return Math.max(0, PACKS_PER_MEAL - opened);
+}

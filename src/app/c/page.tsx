@@ -1,58 +1,36 @@
-"use client";
-
 import { Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { FoodCard } from "@/components/FoodCard";
-import { decodeCollection } from "@/lib/share";
-import { menus } from "@/lib/data";
+import { AppHeader } from "@/components/app-header";
+import { PageShell } from "@/components/page-shell";
+import { buttonVariants } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import { FriendCollection } from "./friend-collection";
 
-function FriendCollection() {
-  const cards = decodeCollection(useSearchParams().get("d") ?? "");
-  cards.sort((a, b) => (a.menu.rarity === b.menu.rarity ? a.menu.id.localeCompare(b.menu.id) : a.menu.rarity === "rare" ? -1 : 1));
-
-  return (
-    <>
-      <section className="py-6">
-        <p className="text-sm text-ink/60">คอลเลกชันของเพื่อน (snapshot)</p>
-        <h1 className="title-pop text-3xl">
-          เก็บไปแล้ว <span className="text-pink">{cards.length}</span> / {menus.length} เมนู
-        </h1>
-      </section>
-      {cards.length ? (
-        <ul className="grid grid-cols-3 gap-3">
-          {cards.map(({ menu, count }) => (
-            <li key={menu.id} className="relative">
-              <Link href={`/card/${menu.id}`}>
-                <FoodCard menu={menu} tilt={false} />
-              </Link>
-              {count > 1 && (
-                <span className="absolute -right-1.5 -top-1.5 font-display rotate-12 rounded-full border-2 border-ink bg-sun px-2 text-xs font-bold">
-                  x{count}
-                </span>
-              )}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-ink/60">ลิงก์นี้ไม่มีการ์ด หรือลิงก์เสีย</p>
-      )}
-    </>
-  );
-}
+export const metadata = { title: "คอลเลกชันของเพื่อน — กินไรดี" };
 
 export default function SharedCollectionPage() {
   return (
-    <main className="flex flex-1 flex-col px-4 pb-10">
-      <Suspense fallback={<p className="py-6 text-ink/60">กำลังโหลด…</p>}>
+    <PageShell>
+      <AppHeader back="/" title="คอลเลกชันของเพื่อน" />
+      {/* อ่าน ?d= จาก URL ฝั่ง client — Suspense ให้ shell ของหน้า prerender ได้ */}
+      <Suspense
+        fallback={
+          <div aria-busy>
+            <Skeleton className="h-24 rounded-card" />
+            <div className="mt-6 grid grid-cols-3 gap-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-[5/7] rounded-[6%/4.3%]" />
+              ))}
+            </div>
+          </div>
+        }
+      >
         <FriendCollection />
       </Suspense>
-      <Link
-        href="/"
-        className="mx-auto mt-10 btn bg-sun !px-6 !py-3"
-      >
+      <Link href="/" className={cn(buttonVariants(), "mt-8 h-12 text-base")}>
         เปิดซองของฉันบ้าง
       </Link>
-    </main>
+    </PageShell>
   );
 }
