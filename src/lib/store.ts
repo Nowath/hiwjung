@@ -10,11 +10,13 @@ interface State {
   collection: Record<string, CollectionEntry>;
   packUsage: PackUsage;
   quizAnswers: Record<string, string[]>; // mock quiz, not used for filtering yet
+  muted: boolean; // เสียงหน้าเปิดซอง — ค่าส่วนตัวต่อเครื่อง
   addCard: (menuId: string) => void;
   consumePack: () => boolean;
   setAnswer: (q: string, a: string[]) => void;
   resetAll: () => void;
   resetPacks: () => void;
+  toggleMuted: () => void;
 }
 
 export const useStore = create<State>()(
@@ -23,6 +25,8 @@ export const useStore = create<State>()(
       collection: {},
       packUsage: { mealSlot: "", opened: 0 },
       quizAnswers: {},
+      muted: false,
+      toggleMuted: () => set((s) => ({ muted: !s.muted })),
       addCard: (menuId) =>
         set((s) => {
           const now = new Date().toISOString();
@@ -49,7 +53,7 @@ export const useStore = create<State>()(
     }),
     {
       name: "kinraidee",
-      partialize: (s) => ({ collection: s.collection, packUsage: s.packUsage, quizAnswers: s.quizAnswers }),
+      partialize: (s) => ({ collection: s.collection, packUsage: s.packUsage, quizAnswers: s.quizAnswers, muted: s.muted }),
     },
   ),
 );

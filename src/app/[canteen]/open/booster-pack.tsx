@@ -64,8 +64,9 @@ export function BoosterPack({ canteen, locked }: { canteen: Canteen; locked?: bo
             {/* หน้าต่างโค้งรูปโรงอาหาร — ทำให้แต่ละซองต่างกันตามโรงอาหาร */}
             <div className="relative mt-[8%] aspect-[4/5] w-[74%]">
               <div className="absolute inset-0 overflow-hidden rounded-t-full rounded-b-2xl bg-rose-900 ring-4 ring-white/80">
+                {/* eager ไม่ใช่ priority: ซอง render หลัง hydrate เท่านั้น preload ล่วงหน้าเลยเตือนว่าไม่ได้ใช้ */}
                 {canteen.image ? (
-                  <Image src={canteen.image} alt="" fill sizes="200px" priority draggable={false} className="pointer-events-none object-cover" />
+                  <Image src={canteen.image} alt="" fill sizes="200px" loading="eager" draggable={false} className="pointer-events-none object-cover" />
                 ) : (
                   <div className="grid size-full place-items-center">
                     <Soup className="size-1/2 text-white/80" strokeWidth={1.5} />

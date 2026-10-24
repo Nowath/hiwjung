@@ -2,8 +2,9 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useGSAP } from "@gsap/react";
-import { LibraryBig, Package, RotateCcw, X } from "lucide-react";
+import { LibraryBig, Package, RotateCcw, Volume2, VolumeX, X } from "lucide-react";
 import { CardShareButtons } from "@/components/share-buttons";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { PACK_NAME } from "@/config/flow";
@@ -16,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { BoosterPack } from "./booster-pack";
 import { DealCard, PreviewCard } from "./deal-card";
 import { createDirector, THUMB_ROW_H, type Director, type Phase } from "./director";
+import { setMuted } from "./sfx";
 
 /** เวทีมืดเต็มจอ — แต่ละรอบ (ซอง) remount ใหม่ทั้งก้อน ให้ GSAP เริ่มจาก DOM สะอาดทุกครั้ง */
 export function PackStage({ canteen }: { canteen: Canteen }) {
@@ -25,6 +27,17 @@ export function PackStage({ canteen }: { canteen: Canteen }) {
   // หน้านี้ถูกซ่อนด้วย <Activity> ตอนออกไป (ไม่ unmount) และ GSAP ถูก revert ไปแล้ว
   // เปลี่ยน round ให้กลับมาครั้งหน้าได้ซองใหม่ตั้งแต่ต้น แทนที่จะเจอเฟสเก่าที่ไม่มี animation
   useLayoutEffect(() => () => setRound((r) => r + 1), []);
+
+  // ปุ่มย้อนกลับของ browser → กลับหน้าแรกเลย (ไม่ย้อนไปหน้าคำถาม)
+  // ใส่ history entry ซ้ำ URL เดิมไว้กันหนึ่งอัน กดย้อนแล้วจะ pop มาที่ entry เดิมของหน้านี้ (Next ไม่เปลี่ยนหน้า)
+  // แล้วเราค่อย replace ไปหน้าแรก — effect cleanup ตอน Activity ซ่อนหน้า จึงไม่ไปดักหน้าอื่น
+  const router = useRouter();
+  useEffect(() => {
+    window.history.pushState(window.history.state, "", window.location.href);
+    const onPop = () => router.replace("/");
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [router]);
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-[radial-gradient(ellipse_at_50%_40%,var(--stage-bg),var(--stage-bg-deep)_75%)] text-stage-fg">
@@ -46,6 +59,9 @@ function PackRound({ canteen, onNext }: { canteen: Canteen; onNext: () => void }
   const [selected, setSelected] = useState<number | null>(null);
   const [cur, setCur] = useState(0);
   const packsLeft = usePacksLeft();
+  const muted = useStore((s) => s.muted);
+  const toggleMuted = useStore((s) => s.toggleMuted);
+  useEffect(() => setMuted(muted), [muted]);
 
   // animation ทั้งหมดอยู่ใน director (ดู director.ts) — React ทำแค่ render UI ตามเฟส
   useGSAP(
@@ -118,7 +134,16 @@ function PackRound({ canteen, onNext }: { canteen: Canteen; onNext: () => void }
             <p className="truncate font-heading text-lg font-bold">{PACK_NAME}</p>
             <p className="truncate text-sm text-stage-fg-soft">{canteen.name}</p>
           </div>
-          <span className="ml-auto inline-flex h-9 items-center gap-1.5 rounded-full bg-white/10 px-3 text-base" aria-label={`เหลือ ${packsLeft} ซองในมื้อนี้`}>
+          <button
+            type="button"
+            onClick={toggleMuted}
+            aria-label={muted ? "เปิดเสียง" : "ปิดเสียง"}
+            aria-pressed={muted}
+            className="ml-auto grid size-11 place-items-center rounded-full outline-none transition-colors duration-(--dur-fast) hover:bg-white/10 focus-visible:ring-[3px] focus-visible:ring-ring"
+          >
+            {muted ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}
+          </button>
+          <span className="inline-flex h-9 items-center gap-1.5 rounded-full bg-white/10 px-3 text-base" aria-label={`เหลือ ${packsLeft} ซองในมื้อนี้`}>
             <Package className="size-4" />
             {packsLeft}/{PACKS_PER_MEAL}
           </span>

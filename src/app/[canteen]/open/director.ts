@@ -1,6 +1,7 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 import type { Menu } from "@/lib/types";
 import { useStore } from "@/lib/store";
+import { sfx, unlockAudio } from "./sfx";
 import { ambientSparkles, burst, centerIn, converge, Draggable, gsap, GOLD, PINK, prefersReducedMotion, shake } from "./fx";
 
 export type Phase = "ready" | "tearing" | "reveal" | "choose" | "saved" | "empty";
@@ -170,6 +171,7 @@ export function createDirector(d: Deps) {
 
   function packDown(e: ReactPointerEvent<HTMLElement>) {
     if (s.phase !== "ready") return;
+    unlockAudio(); // แตะแรกของผู้ใช้ — ปลดล็อกเสียงตามนโยบาย autoplay
     e.currentTarget.setPointerCapture(e.pointerId);
     drag = { x0: e.clientX, w: e.currentTarget.getBoundingClientRect().width, moved: false, p: 0, spark: 0 };
   }
@@ -184,6 +186,7 @@ export function createDirector(d: Deps) {
     // ประกายไฟตรงปลายรอยฉีก ทุกๆ ~8% ของระยะ
     if (drag.p - drag.spark > 0.08) {
       drag.spark = drag.p;
+      sfx.peel();
       const line = root.querySelector(".pack-tear-line")!;
       const lr = line.getBoundingClientRect();
       const fr = fx.getBoundingClientRect();
@@ -204,6 +207,7 @@ export function createDirector(d: Deps) {
   function tear(p0: number) {
     if (s.phase !== "ready") return;
     if (!useStore.getState().consumePack()) return go("empty");
+    unlockAudio(); // เผื่อฉีกด้วยคีย์บอร์ด (Enter) ซึ่งไม่ผ่าน packDown
     go("tearing");
     // ต้อง kill ฟอยล์ด้วย ไม่งั้นมันเลื่อน --mx ต่อระหว่างดึงการ์ด → วาดซองใหม่ทุกเฟรม
     gsap.killTweensOf([".pack", ".pack-guide", ".pack-shine", ".pack-glow", ".pack-tilt", ".pack-foil"]);
@@ -216,6 +220,7 @@ export function createDirector(d: Deps) {
       .to(".pack-tear-line", { scaleX: 1, duration: 0.35 * (1 - p0) + 0.05, ease: "power2.in" }, 0)
       // ลุ้น: ซองสั่นถี่ขึ้น ลอยเข้าหากล้อง แสงหลังซองบวมก่อนระเบิด
       .to(".pack", { rotation: 5, duration: 0.65, ease: "kd.rumble" }, 0.1)
+      .add(sfx.rumble, 0.1)
       .to(".pack", { z: 90, duration: 0.65, ease: "power2.in" }, 0.1)
       .to(".pack-glow", { scale: 1.8, opacity: 1, duration: 0.65, ease: "power2.in" }, 0.1)
       .addLabel("rip", 0.75)
@@ -253,7 +258,8 @@ export function createDirector(d: Deps) {
     gsap.set(cs.map((c) => q(c, ".card-flip")), { rotationY: 180 });
 
     const tl = gsap.timeline({ onComplete: safe(enableDrags) });
-    tl.to(cs, { y: -cardH * 0.62, duration: 0.75, ease: "power2.out", stagger: { each: 0.07, from: "end" } }, 0)
+    tl.add(sfx.shuffle, 0.05)
+      .to(cs, { y: -cardH * 0.62, duration: 0.75, ease: "power2.out", stagger: { each: 0.07, from: "end" } }, 0)
       .add(() => burst(fx, { ...centerIn(fx, root.querySelector(".pack-mouth")!), count: 30, colors: [...PINK, "var(--gold-300)"], velocity: [150, 450], angle: [-160, -20], gravity: 500, duration: 1.2, size: [3, 6] }), 0.1)
       .to(".pack-beam", { opacity: 0, duration: 0.3 }, 0.3)
       // ซองร่วงลงพร้อมเอียง — การ์ดค้างกลางอากาศครู่หนึ่ง
@@ -278,7 +284,11 @@ export function createDirector(d: Deps) {
         .fromTo(".rare-label", { opacity: 0, scale: 0.5, y: 0 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(3)" }, 0.15)
         .to(".rare-label", { duration: 0.8, scrambleText: { text: "RARE!", chars: "★✦✧◆✶", speed: 0.5 } }, 0.15);
     }
+    // การ์ดใบแรกขึ้นมาพร้อมจังหวะดึงออกจากซอง — ใบธรรมดาไม่มีเสียง (ตามที่ตกลงไว้)
+    if (rare) tl.add(sfx.rareRise, 0);
     tl.addLabel("flip");
+    if (rare) tl.add(sfx.rare, "flip");
+    else if (i > 0) tl.add(sfx.pop, "flip");
     // การ์ดหงายอยู่แล้ว — Rare หมุนโชว์อีกรอบเป็นการเฉลย ใบธรรมดาแค่เด้ง
     if (rare) tl.to(q(el, ".card-flip"), { rotationY: "+=360", duration: 1, ease: "back.out(1.5)" }, "flip");
     tl
@@ -322,7 +332,10 @@ export function createDirector(d: Deps) {
         onClick: safe(() => s.cur === i && !s.busy && dismiss(i, i % 2 ? -1 : 1)),
         // ลากใบบนแง้มออก: การ์ดเอียงตามนิ้ว และถ้ามี Rare ซ่อนอยู่ใต้กอง ขอบทองจะเรืองรอบกองตามระยะลาก
         // นิ้วแตะเมื่อไหร่ หยุดท่าแง้มชวนลากทันที ไม่งั้น tween แย่ง x กับนิ้ว
-        onPress: () => nudge?.kill(),
+        onPress: () => {
+          nudge?.kill();
+          unlockAudio();
+        },
         // ห้ามห่อด้วย safe: contextSafe เรียกฟังก์ชันด้วย this = gsap context ทำให้อ่าน this.x ของ Draggable ไม่ได้
         onDrag(this: Draggable) {
           gsap.set(el, { rotation: this.x * 0.08 });
@@ -353,6 +366,7 @@ export function createDirector(d: Deps) {
     if (s.cur !== i || s.busy) return;
     s.busy = true;
     s.drags[i]?.disable();
+    sfx.swipe();
     const cs = els();
     gsap.to(".stack-tell", { opacity: 0, duration: 0.2 });
     gsap.to(cs[i], {
@@ -410,6 +424,7 @@ export function createDirector(d: Deps) {
     if (s.phase !== "choose" || s.selected === i) return;
     s.selected = i;
     d.setSelected(i);
+    sfx.tick();
     // รูปย่ออยู่ตำแหน่งเดิมตลอด — บอกใบที่เลือกด้วยกรอบชมพูกับความทึบเท่านั้น ไม่ยกขึ้น
     gsap.to(els(), { opacity: (k: number) => (k === i ? 1 : 0.55), duration: 0.2, overwrite: "auto" });
     gsap.to(els().map((c) => q(c, ".card-ring")), { opacity: (k: number) => (k === i ? 1 : 0), duration: 0.2 });
@@ -437,6 +452,7 @@ export function createDirector(d: Deps) {
   function save() {
     if (s.phase !== "choose" || s.selected < 0) return;
     useStore.getState().addCard(cards[s.selected].id);
+    sfx.save();
     go("saved");
   }
 
@@ -456,6 +472,7 @@ export function createDirector(d: Deps) {
         burst(fx, { ...centerIn(fx, card), count: 140, colors: [...PINK, ...GOLD], shape: "confetti", velocity: [450, 1150], angle: [-175, -5], gravity: 850, duration: 2.6, size: [6, 12] });
         shake(".camera", 10, 0.5);
       }, "land")
+      .add(sfx.stamp, "land+=0.57")
       .fromTo(".stamp", { scale: 3.2, opacity: 0, rotation: -32 }, { scale: 1, opacity: 1, rotation: -8, duration: 0.42, ease: "power4.in" }, "land+=0.15")
       .add(() => shake(".camera", 7, 0.35), "land+=0.57")
       .from(".saved-action", { y: 28, opacity: 0, duration: 0.55, stagger: 0.08, ease: "power3.out" }, "land+=0.35")
