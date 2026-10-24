@@ -24,12 +24,14 @@ const CRIMP_DARK = crimp("oklch(0.547 0.156 5.8 / 0.35)");
 export function BoosterPack({ canteen, locked }: { canteen: Canteen; locked?: boolean }) {
   return (
     <div className={cn("pack relative aspect-[5/8] w-[min(68vw,270px)] select-none", locked && "grayscale")}>
-      <div className="pack-glow absolute -inset-12 rounded-full bg-[radial-gradient(circle,var(--ci-rose-500)_0%,transparent_65%)] opacity-60 blur-xl" />
+      {/* ไม่ใช้ filter blur — แสง/เงาเป็น radial gradient ล้วน ขยับแล้วไม่ต้องวาดใหม่ทุกเฟรม (Android) */}
+      <div className="pack-glow absolute -inset-12 rounded-full bg-[radial-gradient(circle,var(--ci-rose-500)_0%,transparent_65%)] opacity-60" />
+      <div className="absolute inset-x-[6%] -bottom-[5%] h-[10%] rounded-[50%] bg-[radial-gradient(ellipse,oklch(0_0_0/0.55),transparent_70%)]" />
 
       <div className="pack-tilt relative size-full [transform-style:preserve-3d]">
         {/* ---------- ตัวซอง ---------- */}
         <div
-          className="pack-body absolute inset-x-0 top-[12%] bottom-0 overflow-hidden bg-[linear-gradient(165deg,var(--ci-rose-500)_0%,var(--ci-rose-700)_40%,var(--ci-rose-900)_100%)] drop-shadow-[0_30px_40px_oklch(0_0_0/0.6)]"
+          className="pack-body absolute inset-x-0 top-[12%] bottom-0 overflow-hidden bg-[linear-gradient(165deg,var(--ci-rose-500)_0%,var(--ci-rose-700)_40%,var(--ci-rose-900)_100%)]"
           style={{ clipPath: BODY_EDGE }}
         >
           {/* รัศมีพุ่งจากโลโก้ */}
@@ -117,7 +119,7 @@ export function BoosterPack({ canteen, locked }: { canteen: Canteen; locked?: bo
         </div>
 
         {/* ลำแสงพุ่งจากปากซองตอนฉีก */}
-        <div className="pack-beam pointer-events-none absolute bottom-[88%] left-1/2 h-[70vh] w-[130%] -translate-x-1/2 origin-bottom scale-y-0 bg-[linear-gradient(to_top,white,oklch(1_0_0/0.5)_20%,transparent)] opacity-0 blur-md [clip-path:polygon(38%_100%,62%_100%,100%_0,0_0)]" />
+        <div className="pack-beam pointer-events-none absolute bottom-[88%] left-1/2 h-[70vh] w-[130%] -translate-x-1/2 origin-bottom scale-y-0 bg-[linear-gradient(to_top,white,oklch(1_0_0/0.5)_20%,transparent)] opacity-0 [clip-path:polygon(38%_100%,62%_100%,100%_0,0_0)]" />
       </div>
     </div>
   );

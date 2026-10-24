@@ -131,8 +131,20 @@ export function createDirector(d: Deps) {
     };
   }
 
+  // อุ่นการ์ดล่วงหน้าระหว่างซองรอฉีก: decode รูป + ให้เบราว์เซอร์วาด layer ไว้ก่อน (opacity เกือบ 0 อยู่หลังซอง)
+  // ไม่งั้นการ์ดโผล่ครั้งแรกตรงจังหวะดึงออกจากซองพอดี แล้ว decode/วาดพร้อมกัน 3 ใบ → Android กระตุก
+  const pullStart = (cardH: number) => ({ ...STACK, y: cardH * 0.25, scale: 0.94 });
+  function prewarmCards() {
+    const cs = els();
+    if (!cs.length) return;
+    root.querySelectorAll<HTMLImageElement>(".deal-card img").forEach((img) => img.decode?.().catch(() => {}));
+    gsap.set(cs, { visibility: "visible", opacity: 0.001, zIndex: (i: number) => 10 - i, ...pullStart(cs[0].offsetHeight) });
+    gsap.set(cs.map((c) => q(c, ".card-flip")), { rotationY: 180 });
+  }
+
   function idlePack() {
     packIdle = true;
+    prewarmCards();
     gsap.to(".pack", { y: -12, duration: 1.8, repeat: -1, yoyo: true, ease: "sine.inOut" });
     gsap.to(".pack-glow", { scale: 1.15, opacity: 0.85, duration: 1.4, repeat: -1, yoyo: true, ease: "sine.inOut" });
     gsap.to(".pack-shine", { xPercent: 420, duration: 1.3, repeat: -1, repeatDelay: 1.7, ease: "power2.inOut" });
@@ -193,7 +205,8 @@ export function createDirector(d: Deps) {
     if (s.phase !== "ready") return;
     if (!useStore.getState().consumePack()) return go("empty");
     go("tearing");
-    gsap.killTweensOf([".pack", ".pack-guide", ".pack-shine", ".pack-glow", ".pack-tilt"]);
+    // ต้อง kill ฟอยล์ด้วย ไม่งั้นมันเลื่อน --mx ต่อระหว่างดึงการ์ด → วาดซองใหม่ทุกเฟรม
+    gsap.killTweensOf([".pack", ".pack-guide", ".pack-shine", ".pack-glow", ".pack-tilt", ".pack-foil"]);
     packTilt = null;
 
     const tl = gsap.timeline();
@@ -235,7 +248,8 @@ export function createDirector(d: Deps) {
     go("reveal");
     const cs = els();
     const cardH = cs[0].offsetHeight;
-    gsap.set(cs, { visibility: "visible", zIndex: (i: number) => 10 - i, ...STACK, y: cardH * 0.25, scale: 0.94, opacity: 1 });
+    // ปกติอุ่นไว้แล้วตั้งแต่ idlePack — set ซ้ำเผื่อฉีกก่อนท่าเข้าฉากจบ
+    gsap.set(cs, { visibility: "visible", zIndex: (i: number) => 10 - i, ...pullStart(cardH), opacity: 1 });
     gsap.set(cs.map((c) => q(c, ".card-flip")), { rotationY: 180 });
 
     const tl = gsap.timeline({ onComplete: safe(enableDrags) });
@@ -286,8 +300,6 @@ export function createDirector(d: Deps) {
         .to(".rare-label", { opacity: 0, y: -40, duration: 0.5, ease: "power2.in" }, "flip+=1.5")
         .to(".rays-gold", { opacity: 0.25, duration: 1.2 }, "flip+=1.2")
         .to(".rays", { opacity: 1, duration: 1.2 }, "flip+=1.2");
-      // holo วิ่งวนบนการ์ด Rare — แยกจาก timeline เพราะ repeat: -1 จะทำให้ timeline ไม่มีวันจบ
-      gsap.to(q(el, ".card-front"), { "--mx": "100%", "--my": "0%", duration: 2.4, repeat: -1, yoyo: true, ease: "sine.inOut", delay: 0.6 });
     }
     // ใบสุดท้าย: ไม่ต้องปัดทิ้ง — ค้างให้ดูแป๊บหนึ่งแล้วเข้า gallery เอง (ปัด/แตะก่อนก็ข้ามได้)
     // นับเวลาตั้งแต่การเฉลยจบ (ไม่รอแสงทองจางหมด ซึ่งช้ากว่ามาก)
@@ -415,7 +427,8 @@ export function createDirector(d: Deps) {
       .fromTo(card, { scale: 0.85, y: 20, opacity: 0 }, { scale: 1, y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0);
     if (rare) {
       tl.to(q(card, ".card-aura"), { opacity: 0.8, scale: 1.1, duration: 1.2, repeat: -1, yoyo: true, ease: "sine.inOut" }, 0.2)
-        .to(q(card, ".card-front"), { "--mx": "100%", "--my": "0%", duration: 2.4, repeat: -1, yoyo: true, ease: "sine.inOut" }, 0)
+        // holo กวาดครั้งเดียว — วนไม่หยุดจะวาดการ์ด (รูป + blend) ใหม่ทุกเฟรมตลอดเวลา
+        .fromTo(q(card, ".card-front"), { "--mx": "0%", "--my": "100%" }, { "--mx": "100%", "--my": "0%", duration: 1.4, ease: "sine.inOut" }, 0)
         .add(() => burst(fx, { ...centerIn(fx, card), count: 26, colors: GOLD, velocity: [60, 200], angle: [0, 360], gravity: 0, duration: 1.1, size: [2, 5] }), 0.3);
     }
     speed(tl);
@@ -446,7 +459,7 @@ export function createDirector(d: Deps) {
       .fromTo(".stamp", { scale: 3.2, opacity: 0, rotation: -32 }, { scale: 1, opacity: 1, rotation: -8, duration: 0.42, ease: "power4.in" }, "land+=0.15")
       .add(() => shake(".camera", 7, 0.35), "land+=0.57")
       .from(".saved-action", { y: 28, opacity: 0, duration: 0.55, stagger: 0.08, ease: "power3.out" }, "land+=0.35")
-      .to(q(card, ".card-front"), { "--mx": "90%", "--my": "20%", duration: 2.6, repeat: -1, yoyo: true, ease: "sine.inOut" }, "land+=0.8");
+      .fromTo(q(card, ".card-front"), { "--mx": "0%", "--my": "100%" }, { "--mx": "100%", "--my": "0%", duration: 1.4, ease: "sine.inOut" }, "land+=0.6");
     speed(tl);
   }
 

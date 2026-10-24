@@ -41,7 +41,7 @@ export function CardFaces({ menu, sizes = "250px" }: { menu: Menu; sizes?: strin
 function RareAura() {
   return (
     <div
-      className="card-aura pointer-events-none absolute -inset-[30%] rounded-full bg-[radial-gradient(circle,var(--gold-300)_0%,var(--gold-500)_25%,transparent_62%)] opacity-0 blur-lg"
+      className="card-aura pointer-events-none absolute -inset-[30%] rounded-full bg-[radial-gradient(circle,var(--gold-300)_0%,var(--gold-500)_25%,transparent_62%)] opacity-0"
     />
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useGSAP } from "@gsap/react";
 import { LibraryBig, Package, RotateCcw, X } from "lucide-react";
@@ -21,6 +21,10 @@ import { createDirector, THUMB_ROW_H, type Director, type Phase } from "./direct
 export function PackStage({ canteen }: { canteen: Canteen }) {
   const hydrated = useHydrated();
   const [round, setRound] = useState(0);
+
+  // หน้านี้ถูกซ่อนด้วย <Activity> ตอนออกไป (ไม่ unmount) และ GSAP ถูก revert ไปแล้ว
+  // เปลี่ยน round ให้กลับมาครั้งหน้าได้ซองใหม่ตั้งแต่ต้น แทนที่จะเจอเฟสเก่าที่ไม่มี animation
+  useLayoutEffect(() => () => setRound((r) => r + 1), []);
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-[radial-gradient(ellipse_at_50%_40%,var(--stage-bg),var(--stage-bg-deep)_75%)] text-stage-fg">
@@ -101,7 +105,7 @@ function PackRound({ canteen, onNext }: { canteen: Canteen; onNext: () => void }
       <div ref={sparkleLayer} className="pointer-events-none absolute inset-0" />
 
       {/* ---------- คอลัมน์มือถือ ---------- */}
-      <div className="camera relative mx-auto flex h-dvh max-w-md flex-col px-4 pt-[env(safe-area-inset-top)] pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <div className="camera relative mx-auto will-change-transform flex h-dvh max-w-md flex-col px-4 pt-[env(safe-area-inset-top)] pb-[max(1rem,env(safe-area-inset-bottom))]">
         <header className="stage-chrome flex h-16 shrink-0 items-center gap-2">
           <Link
             href="/"
@@ -163,7 +167,7 @@ function PackRound({ canteen, onNext }: { canteen: Canteen; onNext: () => void }
 
           {phase !== "empty" && cards.map((m, i) => <DealCard key={m.id} menu={m} index={i} onSelect={() => director.current?.choose(i)} />)}
 
-          <p className="rare-label pointer-events-none absolute top-[6%] font-heading text-5xl font-bold text-gold-300 opacity-0 drop-shadow-[0_0_18px_var(--gold-500)]" aria-hidden />
+          <p className="rare-label pointer-events-none absolute top-[6%] font-heading text-5xl font-bold text-gold-300 opacity-0 [text-shadow:0_0_18px_var(--gold-500)]" aria-hidden />
           <p className="stamp pointer-events-none absolute bottom-[8%] rounded-xl border-4 border-primary bg-stage-deep/80 px-4 py-1 font-heading text-2xl font-bold text-primary opacity-0">
             เก็บเข้าคอลเลกชันแล้ว
           </p>

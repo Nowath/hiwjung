@@ -11,6 +11,8 @@ import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
 // plugin ของ GSAP ลงทะเบียนได้เฉพาะในเบราว์เซอร์ (ตอน SSR ไม่มี window ทำให้ CustomEase พัง)
 if (typeof window !== "undefined") {
   gsap.registerPlugin(useGSAP, CustomEase, CustomWiggle, Draggable, Physics2DPlugin, ScrambleTextPlugin);
+  // ค้าง GPU layer ไว้หลัง tween จบ (ค่าเริ่ม "auto" จะปลดกลับเป็น 2D แล้วสร้างใหม่ตอน tween ถัดไป → Android กระตุกตอนเริ่มทุกท่า)
+  gsap.config({ force3D: true });
   // สั่นแบบค่อยๆ ซา (กระแทก) กับสั่นคงที่ (ลุ้นก่อนเปิด Rare)
   CustomWiggle.create("kd.shake", { wiggles: 9, type: "easeOut" });
   CustomWiggle.create("kd.rumble", { wiggles: 18, type: "uniform" });

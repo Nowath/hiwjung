@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, Shuffle } from "lucide-react";
@@ -17,6 +17,16 @@ export function Quiz({ canteenId }: { canteenId: string }) {
   const [step, setStep] = useState(0);
   const q = QUIZ[step];
   const picked = answers[q.id] ?? [];
+
+  // Next 16 (cacheComponents) ไม่ unmount หน้าที่ออกไป แต่ซ่อนไว้ใน <Activity> — state เลยค้างข้ามการเข้าหน้า
+  // cleanup นี้รันตอนหน้าถูกซ่อน: ล้างคำตอบและกลับไปข้อแรก ทุกครั้งที่เข้ามาใหม่จึงต้องตอบใหม่หมด
+  useLayoutEffect(
+    () => () => {
+      setAnswers({});
+      setStep(0);
+    },
+    [],
+  );
 
   function setAnswer(id: string, value: string[]) {
     setAnswers((a) => ({ ...a, [id]: value }));
