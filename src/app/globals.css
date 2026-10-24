@@ -1,26 +1,219 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --cream: #fff6eb;
+  --ink: #17357a;
+  --pink: #e4528c;
+  --pink-soft: #f9c9dc;
+  --sun: #ffc83d;
+  --butter: #ffe7b0;
+  --sky: #3fb6e8;
+  --aqua: #a6e3ee;
+  --mint: #c8ebc4;
+  --tomato: #f0603c;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-cream: var(--cream);
+  --color-ink: var(--ink);
+  --color-pink: var(--pink);
+  --color-pink-soft: var(--pink-soft);
+  --color-sun: var(--sun);
+  --color-butter: var(--butter);
+  --color-sky: var(--sky);
+  --color-aqua: var(--aqua);
+  --color-mint: var(--mint);
+  --color-tomato: var(--tomato);
+  --font-sans: var(--font-anuphan);
+  --font-display: var(--font-mitr);
+  --shadow-pop: 5px 5px 0 0 var(--ink);
+  --shadow-pop-sm: 3px 3px 0 0 var(--ink);
+  --shadow-pop-pink: 5px 5px 0 0 var(--pink);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-anuphan), sans-serif;
+  -webkit-tap-highlight-color: transparent;
 }
+
+/* ---------- friendly building blocks ---------- */
+
+.font-display {
+  font-family: var(--font-mitr), sans-serif;
+}
+
+/* chunky sticker button that "presses" into its shadow */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 2.5px solid var(--ink);
+  border-radius: 14px;
+  padding: 0.7rem 1.1rem;
+  font-family: var(--font-mitr), sans-serif;
+  font-weight: 600;
+  box-shadow: var(--shadow-pop-sm);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  user-select: none;
+}
+.btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 0 var(--ink);
+}
+.btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 0 var(--ink);
+}
+
+.pop-box {
+  border: 2.5px solid var(--ink);
+  border-radius: 22px;
+  box-shadow: var(--shadow-pop);
+}
+
+.title-pop {
+  font-family: var(--font-mitr), sans-serif;
+  font-weight: 700;
+  line-height: 1.05;
+  text-shadow: 3px 3px 0 var(--pink-soft);
+}
+
+.squiggle {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='8' viewBox='0 0 24 8'%3E%3Cpath d='M0 4 Q6 0 12 4 T24 4' fill='none' stroke='%23e4528c' stroke-width='2.5'/%3E%3C/svg%3E") repeat-x bottom / 24px 8px;
+  padding-bottom: 6px;
+}
+
+.dots-bg {
+  background-image: radial-gradient(rgba(23, 53, 122, 0.12) 1.5px, transparent 1.6px);
+  background-size: 18px 18px;
+}
+
+/* ---------- card ---------- */
+
+.card-3d {
+  position: relative;
+  aspect-ratio: 5 / 7;
+  transform-style: preserve-3d;
+  border-radius: 4.5% / 3.2%;
+}
+
+.card-face {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.card-face--front {
+  transform: rotateY(180deg);
+}
+
+.card-back {
+  background-color: var(--pink);
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.28) 2px, transparent 2.2px),
+    radial-gradient(rgba(255, 255, 255, 0.28) 2px, transparent 2.2px);
+  background-size: 22px 22px;
+  background-position: 0 0, 11px 11px;
+  border: 3px solid var(--ink);
+  display: grid;
+  place-items: center;
+}
+
+/* ---------- holo (rare) ---------- */
+
+.holo {
+  --mx: 50%;
+  --my: 50%;
+  --o: 0.55;
+}
+
+.holo-shine,
+.holo-glare {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.holo-shine {
+  background:
+    repeating-linear-gradient(
+      110deg,
+      #ff5f6d 0%,
+      #ffc371 6%,
+      #f9f871 12%,
+      #6bffb8 18%,
+      #5ad1ff 24%,
+      #b28dff 30%,
+      #ff5f6d 36%
+    ),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.12) 0 2px, transparent 2px 6px);
+  background-size: 300% 300%, 100% 100%;
+  background-position: var(--mx) var(--my), center;
+  mix-blend-mode: color-dodge;
+  opacity: calc(var(--o) * 0.55);
+  filter: brightness(0.7) contrast(1.3) saturate(1.2);
+}
+
+.holo-glare {
+  background: radial-gradient(
+    farthest-corner circle at var(--mx) var(--my),
+    rgba(255, 255, 255, 0.75) 0%,
+    rgba(255, 255, 255, 0.15) 25%,
+    rgba(0, 0, 0, 0.3) 90%
+  );
+  mix-blend-mode: overlay;
+  opacity: var(--o);
+}
+
+/* ---------- pack ---------- */
+
+.pack-art {
+  background-color: var(--sun);
+  background-image:
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.35) 0 14px, transparent 14px 28px);
+}
+
+.pack-crimp {
+  background: repeating-linear-gradient(90deg, rgba(23, 53, 122, 0.35) 0 3px, transparent 3px 7px);
+}
+
+.tear-line {
+  background: repeating-linear-gradient(90deg, var(--ink) 0 8px, transparent 8px 14px);
+}
+
+/* sunburst behind the pack / revealed card */
+.rays {
+  background: repeating-conic-gradient(from 0deg, var(--butter) 0 10deg, transparent 10deg 20deg);
+  -webkit-mask-image: radial-gradient(circle, #000 20%, transparent 68%);
+  mask-image: radial-gradient(circle, #000 20%, transparent 68%);
+  border-radius: 9999px;
+  animation: rays-spin 24s linear infinite;
+}
+.rays--gold {
+  background: repeating-conic-gradient(from 0deg, rgba(255, 200, 61, 0.9) 0 9deg, transparent 9deg 18deg);
+}
+@keyframes rays-spin {
+  to { rotate: 360deg; }
+}
+
+.rare-aura {
+  background: radial-gradient(circle, rgba(255, 200, 61, 0.95) 0%, rgba(228, 82, 140, 0.45) 45%, transparent 70%);
+  filter: blur(10px);
+}
+
+.silhouette {
+  filter: blur(6px) grayscale(1) brightness(1.25) contrast(0.6);
+  opacity: 0.45;
+  transform: scale(1.08);
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }

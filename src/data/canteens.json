@@ -1,0 +1,38 @@
+[
+  {
+    "id": "arts",
+    "name": "โรงอาหารอักษรศาสตร์",
+    "short": "อักษรฯ",
+    "location": "คณะอักษรศาสตร์",
+    "color": "#ffe7b0",
+    "image": "/canteens/arts.webp",
+    "credit": "BerryJ, CC BY-SA 4.0, via Wikimedia Commons"
+  },
+  {
+    "id": "arch",
+    "name": "โรงอาหารสถาปัตยกรรม",
+    "short": "สถาปัตย์",
+    "location": "คณะสถาปัตยกรรมศาสตร์",
+    "color": "#a6e3ee",
+    "image": "/canteens/arch.webp",
+    "credit": "ScorpianPK, CC BY-SA 3.0, via Wikimedia Commons"
+  },
+  {
+    "id": "commarts",
+    "name": "โรงอาหารนิเทศศาสตร์",
+    "short": "นิเทศฯ",
+    "location": "คณะนิเทศศาสตร์",
+    "color": "#f9c9dc",
+    "image": null,
+    "credit": null
+  },
+  {
+    "id": "edu",
+    "name": "โรงอาหารครุศาสตร์",
+    "short": "ครุฯ",
+    "location": "คณะครุศาสตร์",
+    "color": "#c8ebc4",
+    "image": "/canteens/edu.webp",
+    "credit": "Paullyleela, CC BY-SA 4.0, via Wikimedia Commons"
+  }
+]

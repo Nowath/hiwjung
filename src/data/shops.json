@@ -1,0 +1,8 @@
+[
+  { "id": "arts-4", "canteenId": "arts", "name": "ร้าน 4" },
+  { "id": "arts-8", "canteenId": "arts", "name": "ร้าน 8" },
+  { "id": "arch-2", "canteenId": "arch", "name": "ร้าน 2" },
+  { "id": "arch-3", "canteenId": "arch", "name": "ร้าน 3" },
+  { "id": "commarts-1", "canteenId": "commarts", "name": "ร้าน 1" },
+  { "id": "edu-5", "canteenId": "edu", "name": "ร้าน 5" }
+]

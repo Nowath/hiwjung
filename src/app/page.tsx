@@ -1,69 +1,79 @@
-import Image from "next/image";
+import Link from "next/link";
+import { TopBar } from "@/components/TopBar";
+import { Marquee, PopIn } from "@/components/Motion";
+import { canteens, mainMenusOf, shops } from "@/lib/data";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <>
+      <TopBar />
+      <main className="flex-1 pb-10">
+        <PopIn>
+          <section className="px-5 pt-6 pb-5">
+            <p data-pop className="font-display inline-block -rotate-2 rounded-lg bg-sun px-2 py-0.5 text-sm font-semibold">
+              หิวแล้วแต่คิดไม่ออก?
+            </p>
+            <h1 data-pop className="title-pop mt-3 text-[2.6rem]">
+              มื้อนี้<span className="squiggle">กินไรดี</span>
+              <br />
+              <span className="text-pink">เปิดซอง</span>ลุ้นเลย!
+            </h1>
+            <p data-pop className="mt-3 max-w-[18rem] text-[15px] leading-relaxed text-ink/75">
+              เลือกโรงอาหาร เปิดซองได้การ์ดเมนู 3 ใบ เลือกใบที่ใช่ แล้วเก็บสะสมให้ครบทุกร้าน
+            </p>
+          </section>
+        </PopIn>
+
+        <Marquee
+          className="-rotate-1 bg-pink text-white"
+          items={["มื้อละ 3 ซอง", "การ์ด Rare หายาก!", "สะสมให้ครบทุกร้าน", "แชร์ให้เพื่อนอิจฉา"]}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+
+        <PopIn delay={0.15}>
+          <h2 data-pop className="font-display px-5 pt-8 pb-3 text-xl font-bold">
+            เลือกโรงอาหาร 👇
+          </h2>
+          <ul className="grid grid-cols-2 gap-4 px-5">
+            {canteens.map((c, i) => {
+              const menuCount = mainMenusOf(c.id).length;
+              const shopCount = shops.filter((s) => s.canteenId === c.id).length;
+              return (
+                <li key={c.id} data-pop>
+                  <Link
+                    href={`/${c.id}`}
+                    className={`pop-box group block overflow-hidden transition-transform hover:-translate-y-1 active:translate-x-1 active:translate-y-1 active:shadow-none ${i % 2 ? "rotate-[1.2deg]" : "-rotate-[1.2deg]"}`}
+                    style={{ background: c.color }}
+                  >
+                    <div className="relative aspect-[4/3] overflow-hidden border-b-[2.5px] border-ink">
+                      {c.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={c.image} alt={c.location} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      ) : (
+                        <div className="dots-bg grid h-full w-full place-items-center text-5xl">📺</div>
+                      )}
+                      <span className="font-display absolute top-2 left-2 rounded-full border-2 border-ink bg-white px-2 text-xs font-semibold">
+                        {menuCount} การ์ด
+                      </span>
+                    </div>
+                    <div className="px-3 py-2.5">
+                      <div className="font-display text-lg leading-tight font-bold">{c.short}</div>
+                      <div className="text-xs text-ink/70">{shopCount} ร้าน · {c.location}</div>
+                    </div>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </PopIn>
+
+        <footer className="mt-10 px-5 text-[10px] leading-relaxed text-ink/50">
+          เครดิตภาพอาคาร:{" "}
+          {canteens
+            .filter((c) => c.credit)
+            .map((c) => `${c.short} — ${c.credit}`)
+            .join(" · ")}
+        </footer>
       </main>
-    </div>
+    </>
   );
 }

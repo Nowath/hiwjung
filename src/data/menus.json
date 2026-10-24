@@ -1,0 +1,10 @@
+[
+  { "id": "001", "shopId": "arts-8", "canteenId": "arts", "name": "ข้าวแกงกะหรี่", "type": "main", "price": 50, "rarity": "common", "image": "/cards/001.webp", "spicy": 0, "tags": ["rice"] },
+  { "id": "002", "shopId": "commarts-1", "canteenId": "commarts", "name": "หมูกรอบผัดพริกเกลือ", "type": "main", "price": 55, "rarity": "common", "image": "/cards/002.webp", "spicy": 2, "tags": ["rice"] },
+  { "id": "003", "shopId": "edu-5", "canteenId": "edu", "name": "กะเพราหมูสับ", "type": "main", "price": 45, "rarity": "common", "image": "/cards/003.webp", "spicy": 2, "tags": ["rice"] },
+  { "id": "004", "shopId": "arts-4", "canteenId": "arts", "name": "หมูทอดกระเทียม", "type": "main", "price": 45, "rarity": "common", "image": "/cards/004.webp", "spicy": 0, "tags": ["rice"] },
+  { "id": "005", "shopId": "arch-3", "canteenId": "arch", "name": "ข้าวมันไก่", "type": "main", "price": 45, "rarity": "common", "image": "/cards/005.webp", "spicy": 0, "tags": ["rice"] },
+  { "id": "006", "shopId": "arch-2", "canteenId": "arch", "name": "ข้าวแกงกะหรี่", "type": "main", "price": 55, "rarity": "common", "image": "/cards/006.webp", "spicy": 1, "tags": ["noodle"] },
+  { "id": "007", "shopId": "arts-8", "canteenId": "arts", "name": "ส้มตำไทย", "type": "main", "price": 50, "rarity": "rare", "image": "/cards/007.webp", "spicy": 3, "tags": ["salad"] },
+  { "id": "008", "shopId": "arts-8", "canteenId": "arts", "name": "ผัดซีอิ๊ว", "type": "main", "price": 50, "rarity": "rare", "image": "/cards/008.webp", "spicy": 0, "tags": ["noodle"] }
+]
