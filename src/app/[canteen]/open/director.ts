@@ -169,6 +169,22 @@ export function createDirector(d: Deps) {
   // ---------- ฉีกซอง (แตะ หรือ ลากนิ้วผ่าน) ----------
   let drag: { x0: number; w: number; moved: boolean; p: number; spark: number } | null = null;
 
+  // ---------- แถบซีลม้วน (ชิ้นเดียว) ----------
+  // แถบเป็นโซ่ข้อต่อ (ดู TopSeg ใน booster-pack) — ข้อที่รอยฉีกผ่านแล้วหมุน rotationY รอบบานพับขวาของตัวเอง
+  // มุมสะสมต่อกันทั้งโซ่ ปลายซ้ายที่หลุดก่อนจึงม้วนเข้าหาจอมากที่สุด ค่อยๆ ม้วนตามนิ้วเหมือนลอกสติกเกอร์
+  const SEG_DEG = 24; // มุมต่อข้อเมื่อหลุดเต็มที่ — 12 ข้อ ≈ ม้วนเกือบรอบเมื่อฉีกสุด
+  const segs = () => gsap.utils.toArray<HTMLElement>(".pack-seg", root);
+  const liftAt = (p: number, k: number, n: number) => gsap.utils.clamp(0, 1, (p * 1.1 - (k + 0.5) / n) / 0.18);
+  // set ตรงๆ ไม่สร้าง tween — เรียกทุก pointermove/ทุกเฟรม
+  function peelTo(p: number) {
+    const list = segs();
+    list.forEach((el) => {
+      const l = liftAt(p, Number(el.dataset.k), list.length);
+      gsap.set(el, { rotationY: l * SEG_DEG });
+      gsap.set(el.querySelector(".pack-seg-shade"), { opacity: l * 0.7 });
+    });
+  }
+
   function packDown(e: ReactPointerEvent<HTMLElement>) {
     if (s.phase !== "ready") return;
     unlockAudio(); // แตะแรกของผู้ใช้ — ปลดล็อกเสียงตามนโยบาย autoplay
@@ -181,8 +197,8 @@ export function createDirector(d: Deps) {
     if (Math.abs(dx) > 6) drag.moved = true;
     drag.p = gsap.utils.clamp(0, 1, dx / (drag.w * 0.85));
     gsap.set(".pack-tear-line", { scaleX: drag.p });
-    // แถบซีลค่อยๆ ลอกขึ้นตามนิ้ว (หมุนรอบมุมซ้ายล่าง)
-    gsap.to(".pack-top", { rotation: -drag.p * 9, y: -drag.p * 6, duration: 0.15, overwrite: "auto" });
+    // แถบซีลม้วนขึ้นเป็นคลื่นไล่ตามนิ้ว
+    peelTo(drag.p);
     // ประกายไฟตรงปลายรอยฉีก ทุกๆ ~8% ของระยะ
     if (drag.p - drag.spark > 0.08) {
       drag.spark = drag.p;
@@ -200,7 +216,9 @@ export function createDirector(d: Deps) {
     if (!g.moved || g.p > 0.55) tear(g.p);
     else {
       gsap.to(".pack-tear-line", { scaleX: 0, duration: 0.35, ease: "power2.out" });
-      gsap.to(".pack-top", { rotation: 0, y: 0, duration: 0.5, ease: "elastic.out(1, 0.5)" });
+      // ปล่อยก่อนครึ่งทาง: แถบคลายม้วนกลับแปะซองแบบยืดหยุ่น
+      gsap.to(".pack-seg", { rotationY: 0, duration: 0.6, ease: "elastic.out(1, 0.45)", overwrite: "auto" });
+      gsap.to(".pack-seg-shade", { opacity: 0, duration: 0.3, overwrite: "auto" });
     }
   }
 
@@ -218,6 +236,8 @@ export function createDirector(d: Deps) {
       .to(".pack-tilt", { rotationX: 0, rotationY: 0, duration: 0.3 }, 0)
       .to(".pack", { y: 0, duration: 0.3 }, 0)
       .to(".pack-tear-line", { scaleX: 1, duration: 0.35 * (1 - p0) + 0.05, ease: "power2.in" }, 0)
+      // แตะฉีก (ไม่ได้ลาก): ไล่คลื่นม้วนจากจุดที่ค้างไว้จนสุดแถบ
+      .to({ p: p0 }, { p: 1, duration: 0.35 * (1 - p0) + 0.05, ease: "power2.in", onUpdate(this: gsap.core.Tween) { peelTo((this.targets()[0] as { p: number }).p); } }, 0)
       // ลุ้น: ซองสั่นถี่ขึ้น ลอยเข้าหากล้อง แสงหลังซองบวมก่อนระเบิด
       .to(".pack", { rotation: 5, duration: 0.65, ease: "kd.rumble" }, 0.1)
       .add(sfx.rumble, 0.1)
@@ -225,7 +245,10 @@ export function createDirector(d: Deps) {
       .to(".pack-glow", { scale: 1.8, opacity: 1, duration: 0.65, ease: "power2.in" }, 0.1)
       .addLabel("rip", 0.75)
       .to(".pack", { z: 0, scale: 1, rotation: 0, duration: 0.2 }, "rip")
-      .to(".pack-top", { x: 170, y: -240, z: 200, rotation: 48, rotationX: 120, opacity: 0, duration: 0.75, ease: "power2.out" }, "rip")
+      // ขาด: ทั้งโซ่ม้วนแน่นขึ้นเป็นหลอด (รวมข้อขวาสุดที่เคยติดซอง) ขณะที่ทั้งแถบปลิวขึ้นขวาแล้วจาง
+      .to(".pack-seg", { rotationY: SEG_DEG * 1.35, duration: 0.6, ease: "power2.out", overwrite: "auto" }, "rip")
+      .to(".pack-seg-shade", { opacity: 0.7, duration: 0.3 }, "rip")
+      .to(".pack-top", { x: 150, y: -220, z: 140, rotation: 30, rotationX: -25, opacity: 0, duration: 0.85, ease: "power2.out" }, "rip")
       .to(".pack-mouth", { opacity: 1, duration: 0.2 }, "rip")
       .to(".pack-tear-line", { opacity: 0, duration: 0.2 }, "rip")
       .fromTo(".pack-beam", { scaleY: 0, opacity: 0 }, { scaleY: 1, opacity: 1, duration: 0.35, ease: "power4.out" }, "rip")

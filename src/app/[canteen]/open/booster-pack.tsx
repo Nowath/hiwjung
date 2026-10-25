@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 // ฟันปลาของรอยซีล: ล่างของแถบบน กับ ล่างสุดของตัวซอง
 const teeth = (n: number, hi: number, lo: number) =>
   Array.from({ length: n + 1 }, (_, i) => `${(i * 100) / n}% ${i % 2 ? lo : hi}%`);
+/** จำนวนแผ่นของแถบซีลบน — มากขึ้นม้วนเนียนขึ้นแต่ต้องขยับ element มากขึ้น */
+export const TOP_SEGMENTS = 12;
 const TOP_EDGE = `polygon(0 0, 100% 0, ${teeth(20, 84, 100).reverse().join(", ")})`;
 const BODY_EDGE = `polygon(0 0, 100% 0, ${teeth(24, 97, 100).reverse().join(", ")})`;
 
@@ -99,16 +101,12 @@ export function BoosterPack({ canteen, locked }: { canteen: Canteen; locked?: bo
           <div className="absolute inset-x-0 bottom-0 h-[5%] bg-rose-900/40" style={{ backgroundImage: CRIMP_LIGHT }} />
         </div>
 
-        {/* ---------- แถบซีลบนที่จะถูกฉีก ---------- */}
-        <div
-          className="pack-top absolute inset-x-0 top-0 h-[14%] origin-bottom-left bg-[linear-gradient(180deg,var(--ci-rose-100),var(--ci-rose-300))]"
-          style={{ clipPath: TOP_EDGE }}
-        >
-          <div className="absolute inset-0 opacity-60" style={{ backgroundImage: CRIMP_DARK }} />
-          <p className="relative flex h-[84%] items-center justify-center gap-1 text-xs font-bold text-rose-900">
-            <Scissors className="size-3.5" />
-            ฉีกตรงนี้
-          </p>
+        {/* ---------- แถบซีลบนที่จะถูกฉีก ----------
+            ชิ้นเดียวต่อเนื่อง แต่ข้างในเป็น "โซ่" ของข้อต่อ TOP_SEGMENTS ข้อ ซ้อนกันจากขวาไปซ้าย
+            แต่ละข้อมีบานพับที่ขอบขวา (ติดกับข้อถัดไป) — director หมุน rotationY ทีละข้อ มุมสะสมต่อกัน
+            แถบเลยโค้งม้วนต่อเนื่องเหมือนกระดาษ ไม่มีรอยแยกระหว่างข้อ */}
+        <div className="pack-top absolute inset-x-0 top-0 h-[14%] [transform-style:preserve-3d]">
+          <TopSeg k={TOP_SEGMENTS - 1} />
         </div>
 
         {/* รอยฉีก: ขีดเรืองแสงยืดตามนิ้ว + จุดนำทาง */}
@@ -122,6 +120,36 @@ export function BoosterPack({ canteen, locked }: { canteen: Canteen; locked?: bo
         {/* ลำแสงพุ่งจากปากซองตอนฉีก */}
         <div className="pack-beam pointer-events-none absolute bottom-[88%] left-1/2 h-[70vh] w-[130%] -translate-x-1/2 origin-bottom scale-y-0 bg-[linear-gradient(to_top,white,oklch(1_0_0/0.5)_20%,transparent)] opacity-0 [clip-path:polygon(38%_100%,62%_100%,100%_0,0_0)]" />
       </div>
+    </div>
+  );
+}
+
+/** ข้อต่อหนึ่งข้อของแถบซีล + ข้อทางซ้ายซ้อนอยู่ข้างใน (โซ่) */
+function TopSeg({ k }: { k: number }) {
+  const root = k === TOP_SEGMENTS - 1;
+  return (
+    <div
+      data-k={k}
+      className="pack-seg absolute top-0 h-full origin-right [transform-style:preserve-3d]"
+      // ข้อแรก (ขวาสุด) วางชิดขวาของแถบ ข้อถัดไปวางต่อทางซ้ายของข้อแม่พอดี (right: 100%) กว้างเท่ากัน
+      style={root ? { right: 0, width: `${100 / TOP_SEGMENTS}%` } : { right: "100%", width: "100%" }}
+    >
+      {/* ภาพแถบเต็มที่เลื่อนให้เห็นเฉพาะช่วงของข้อนี้ — ล้น 0.5px กันเส้นรอยต่อตอนยังไม่ม้วน */}
+      <div className="absolute inset-y-0 -inset-x-[0.5px] overflow-hidden">
+        <div
+          className="absolute top-0 h-full bg-[linear-gradient(180deg,var(--ci-rose-100),var(--ci-rose-300))]"
+          style={{ left: `${-k * 100}%`, width: `${TOP_SEGMENTS * 100}%`, clipPath: TOP_EDGE }}
+        >
+          <div className="absolute inset-0 opacity-60" style={{ backgroundImage: CRIMP_DARK }} />
+          <p className="relative flex h-[84%] items-center justify-center gap-1 text-xs font-bold text-rose-900">
+            <Scissors className="size-3.5" />
+            ฉีกตรงนี้
+          </p>
+        </div>
+        {/* เงาตามความโค้ง — director เพิ่มความทึบตามมุมสะสม */}
+        <div className="pack-seg-shade pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,oklch(0.3_0.08_350/0.55),transparent)] opacity-0" />
+      </div>
+      {k > 0 && <TopSeg k={k - 1} />}
     </div>
   );
 }
